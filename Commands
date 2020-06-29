@@ -1,0 +1,1361 @@
+GET /_cluster/health
+
+GET /_cat/shards?v
+
+GET /_cat/indices?v
+
+GET /.kibana/_search
+{
+  "query":{
+    "match_all": {}
+  }
+}
+
+PUT /pages
+
+GET /_cat/nodes?v
+
+DELETE /pages
+
+PUT /products
+{
+  "settings":{
+    "number_of_shards": 2,
+    "number_of_replicas": 2
+  }
+}
+
+POST /products/_doc
+{
+  "name": "Coffee Maker",
+  "price": 64,
+  "in_stock": 10
+}
+
+PUT /products/_doc/100
+{
+  "name": "Toaster",
+  "price": 49,
+  "in_stock": 4
+}
+
+GET /products/_doc/100
+
+POST /products/_update/100
+{
+  "doc":{
+    "in_stock": 3
+  }
+}
+
+GET /products/_doc/100
+
+POST /products/_update/100
+{
+  "doc":{
+    "tags": ["electronics"]
+  }
+}
+
+POST /products/_update/100
+{
+  "script":{
+    "source": "ctx._source.in_stock--"
+  }
+}
+
+GET /products/_doc/100
+
+POST /products/_update/100
+{
+  "script":{
+    "source": "ctx._source.in_stock = 10"
+  }
+}
+
+POST /products/_update/100
+{
+  "script":{
+    "source": "ctx._source.in_stock -= params.quantity",
+    "params": {
+      "quantity": 4
+    }
+  }
+}
+
+POST /products/_update/101
+{
+  "script":{
+    "source": "ctx._source.in_stock++"
+  },
+  "upsert": {
+    "name": "Blender",
+    "price": 399,
+    "in_stock": 5
+  }
+}
+
+GET /products/_doc/101
+
+PUT /products/_doc/100
+{
+  "name": "Toaster",
+  "price": 79,
+  "in_stock": 4
+}
+
+DELETE /products/_doc/101
+
+GET /products/_doc/101
+
+GET /products/_doc/100
+
+POST /products/_update/100?if_primary_term=1&if_seq_no=9
+{
+  "doc": {
+    "in_stock": 123
+  }
+}
+
+POST /products/_update_by_query
+{
+  "script": {
+    "source": "ctx._source.in_stock--"
+  },
+  "query":{
+    "match_all": {}
+  }
+}
+
+POST /products/_delete_by_query
+{
+  "query":{
+    "match_all": {}
+  }
+}
+
+POST /_bulk
+{ "index": { "_index": "products", "_id": 200 } }
+{ "name": "Espresso Machine", "price": 199, "in_stock": 5 }
+{ "create": { "_index": "products", "_id": 201 } }
+{ "name": "Milk Frother", "price": 149, "in_stock": 14 }
+
+GET /products/_search
+{
+  "query":{
+    "match_all": {}
+  }
+}
+
+POST /products/_bulk
+{ "update": { "_id": 201 } }
+{ "doc": { "price":129 } }
+{ "delete": { "_id": 200 } }
+
+GET /products/_mapping
+
+PUT /products/_mapping
+{
+  "properties": {
+    "discount": {
+      "type": "integer"
+    }
+  }
+}
+
+GET /products/_mapping
+
+DELETE /products
+
+PUT /product
+{
+  "mappings": {
+    "dynamic": false, 
+    "properties": {
+      "in_stock": {
+        "type": "integer"
+      },
+      "is_active": {
+        "type": "boolean"
+      },
+      "price": {
+        "type": "integer"
+      },
+      "sold": {
+        "type": "long"
+      }
+    }
+  }
+}
+
+PUT /product/_mapping
+{
+  "properties": {
+    "description": {
+      "type": "text"
+    },
+    "name": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword"
+        }
+      }
+    },
+    "tags": {
+      "type": "text",
+      "fields": {
+        "keyword": {
+          "type": "keyword"
+        }
+      }
+    }
+  }
+}
+
+GET /product/_mapping
+
+PUT /product/_mapping
+{
+  "properties": {
+    "created": {
+      "type": "date",
+      "format": "yyyy/MM/dd HH:mm:ss||yyyy/MM/dd"
+    }
+  }
+}
+
+POST /product/_doc/2000
+{
+  "description": "Test",
+  "discount": 20
+}
+
+PUT /product/_mapping
+{
+  "properties": {
+    "discount": {
+      "type": "integer"
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "match": {
+      "description": "Test"
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "term": {
+      "discount": 20
+    }
+  }
+}
+
+POST /product/_update_by_query?conflicts=proceed
+
+DELETE /product/_doc/2000
+
+POST _analyze
+{
+  "tokenizer": "standard",
+  "text":"I'm in the mood for drinking semi-dry red wine!"
+}
+
+POST _analyze
+{
+  "tokenizer": "standard",
+  "filter": ["lowercase"],
+  "text":"I'm in the mood for drinking semi-dry red wine!"
+}
+
+POST _analyze
+{
+  "analyzer": "standard",
+  "text":"I'm in the mood for drinking semi-dry red wine!"
+}
+
+PUT /existing_analyzer_config
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "english_stop": {
+          "type": "standard",
+          "stopwords": "_english_"
+        }
+      },
+      "filter": {
+        "my_stemmer": {
+          "type": "stemmer",
+          "name": "english"
+        }
+      }
+    }
+  }
+}
+
+POST /existing_analyzer_config/_analyze
+{
+  "analyzer": "english_stop",
+  "text": "I'm in the mood for drinking semi-dry red wine!"
+}
+
+POST /existing_analyzer_config/_analyze
+{
+  "tokenizer": "standard",
+  "filter": [ "my_stemmer" ],
+  "text": "I'm in the mood for drinking semi-dry red wine!"
+}
+
+PUT /analyzers_test
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "english_stop": {
+          "type": "standard",
+          "stopwords": "_english_"
+        },
+        "my_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "char_filter": [
+            "html_strip"
+          ],
+          "filter": [
+            "lowercase",
+            "trim",
+            "my_stemmer"
+          ]
+        }
+      },
+      "filter": {
+        "my_stemmer": {
+          "type": "stemmer",
+          "name": "english"
+        }
+      }
+    }
+  }
+}
+
+POST /analyzers_test/_analyze
+{
+  "analyzer": "my_analyzer",
+  "text": "I'm in the mood for drinking <strong>semi-dry</strong> red wine!"
+}
+
+PUT /analyzers_test/_mapping
+{
+  "properties": {
+    "description": {
+      "type": "text",
+      "analyzer": "my_analyzer"
+    },
+    "teaser": {
+      "type": "text",
+      "analyzer": "standard"
+    }
+  }
+}
+
+POST /analyzers_test/_doc/1
+{
+  "description": "drinking",
+  "teaser": "drinking"
+}
+
+GET /analyzers_test/_search
+{
+  "query": {
+    "term": {
+      "teaser": {
+        "value": "drinking"
+      }
+    }
+  }
+}
+
+GET /analyzers_test/_search
+{
+  "query": {
+    "term": {
+      "description": {
+        "value": "drinking"
+      }
+    }
+  }
+}
+
+POST /analyzers_test/_close
+
+PUT /analyzers_test/_settings
+{
+  "analysis": {
+    "analyzer": {
+      "french_stop": {
+        "type": "standard",
+        "stopwords": "_french_"
+      }
+    }
+  }
+}
+
+POST /analyzers_test/_open
+
+GET /product/_search?q=*
+
+GET /product/_search?q=name:Lobster
+
+GET /product/_search?q=tags:Meat
+
+GET /product/_search?q=tags:Meat AND name:Tuna
+
+GET /product/_search
+{
+  "query":{
+    "match_all": {}
+  }
+}
+
+GET /product/_search
+{
+  "explain": true,
+  "query":{
+    "term": {
+      "name": "lobster"
+    }
+  }
+}
+
+GET /product/_doc/1
+{
+  "explain": true,
+  "query": {
+    "term": {
+      "name": "lobster"
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query":{
+    "term": {
+      "name": "lobster"
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query":{
+    "term": {
+      "name": "Lobster"
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query":{
+    "match": {
+      "name": "Lobster"
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "term": {
+      "is_active": true
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "term": {
+      "is_active": {
+        "value": true
+      }
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "terms": {
+      "tags.keyword": [
+        "Soup",
+        "Cake"
+      ]
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "ids": {
+      "values": [1,2,3]
+    } 
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "range": {
+      "in_stock": {
+        "gte": 1,
+        "lte": 5
+      }
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "range": {
+      "created": {
+        "gte": "2010/01/01",
+        "lte": "2010/12/31"
+      }
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "range": {
+      "created": {
+        "gte": "01-01-2010",
+        "lte": "31-12-2010",
+        "format": "dd-MM-yyyy"
+      }
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "range": {
+      "created": {
+        "gte": "2011/01/01||-1y"
+      }
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "range": {
+      "created": {
+        "gte": "2010/01/01||/M-1y"
+      }
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "range": {
+      "created": {
+        "gte": "now"
+      }
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "exists": {
+      "field": "tags"
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "prefix": {
+      "tags.keyword": "Vege"
+    }
+  }
+}
+ 
+GET /product/_search
+{
+  "query": {
+    "wildcard": {
+      "tags.keyword": "Veget?ble"
+    }
+  }
+}
+
+GET /product/_search
+{
+  "query": {
+    "regexp": {
+      "tags.keyword": "Veget[a-zA-Z]+ble"
+    }
+  }
+}
+
+GET /recipe/_mapping
+
+GET /recipe/_search
+{
+  "query": {
+    "match": {
+      "title": "Recipes with pasta or spaghetti"
+    }
+  }
+}
+
+GET /recipe/_search
+{
+  "query": {
+    "match": {
+      "title": {
+        "query": "pasta spaghetti",
+        "operator": "and"
+      }
+    }
+  }
+}
+
+GET /recipe/_search
+{
+  "query": {
+    "match_phrase": {
+      "title": {
+        "query": "puttanesca spaghetti"
+      }
+    }
+  }
+}
+
+GET /recipe/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "pasta",
+      "fields": ["title", "description"]
+    }
+  }
+}
+
+GET /recipe/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "ingredients.name": "parmesan"
+          }
+        }
+      ],
+      "filter": [
+        {
+          "range": {
+            "preparation_time_minutes": {
+              "lte": 15
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+GET /recipe/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "ingredients.name": "parmesan"
+          }
+        }
+      ],
+      "must_not": [
+        {
+          "match": {
+            "ingredients.name": "tuna"
+          }
+        }
+      ],
+      "should": [
+        {
+          "match": {
+            "ingredients.name": "parsley"
+          }
+        }
+      ],
+      "filter": [
+        {
+          "range": {
+            "preparation_time_minutes": {
+              "lte": 15
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+GET /recipe/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "ingredients.name": "pasta"
+          }
+        }
+      ],
+      "should": [
+        {
+          "match": {
+            "ingredients.name": "parmesan"
+          }
+        }
+      ]
+    }
+  }
+}
+
+GET /recipe/_search
+{
+  "query": {
+    "match": {
+      "title": "pasta carbonara"
+    }
+  }
+}
+
+GET /recipe/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        {
+          "term": {
+            "title": "pasta"
+          }
+        },
+        {
+          "term": {
+            "title": "carbonara"
+          }
+        }
+      ]
+    }
+  }
+}
+
+GET /recipe/_search
+{
+  "query": {
+    "match": {
+      "title": {
+        "query": "pasta carbonara",
+        "operator": "and"
+      }
+    }
+  }
+}
+
+GET /recipe/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "term": {
+            "title": "pasta"
+          }
+        },
+        {
+          "term": {
+            "title": "carbonara"
+          }
+        }
+      ]
+    }
+  }
+}
+
+PUT /department
+{
+  "mappings": {  
+    "properties": {
+      "name": {
+        "type": "text"
+      },
+      "employees": {
+        "type": "nested"
+      }
+    }
+  }
+}
+
+PUT /department/_doc/1
+{
+  "name": "Development",
+  "employees": [
+    {
+      "name": "Eric Green",
+      "age": 39,
+      "gender": "M",
+      "position": "Big Data Specialist"
+    },
+    {
+      "name": "James Taylor",
+      "age": 27,
+      "gender": "M",
+      "position": "Software Developer"
+    },
+    {
+      "name": "Gary Jenkins",
+      "age": 21,
+      "gender": "M",
+      "position": "Intern"
+    },
+    {
+      "name": "Julie Powell",
+      "age": 26,
+      "gender": "F",
+      "position": "Intern"
+    },
+    {
+      "name": "Benjamin Smith",
+      "age": 46,
+      "gender": "M",
+      "position": "Senior Software Engineer"
+    }
+  ]
+}
+
+PUT /department/_doc/2
+{
+  "name": "HR & Marketing",
+  "employees": [
+    {
+      "name": "Patricia Lewis",
+      "age": 42,
+      "gender": "F",
+      "position": "Senior Marketing Manager"
+    },
+    {
+      "name": "Maria Anderson",
+      "age": 56,
+      "gender": "F",
+      "position": "Head of HR"
+    },
+    {
+      "name": "Margaret Harris",
+      "age": 19,
+      "gender": "F",
+      "position": "Intern"
+    },
+    {
+      "name": "Ryan Nelson",
+      "age": 31,
+      "gender": "M",
+      "position": "Marketing Manager"
+    },
+    {
+      "name": "Kathy Williams",
+      "age": 49,
+      "gender": "F",
+      "position": "Senior Marketing Manager"
+    },
+    {
+      "name": "Jacqueline Hill",
+      "age": 28,
+      "gender": "F",
+      "position": "Junior Marketing Manager"
+    },
+    {
+      "name": "Donald Morris",
+      "age": 39,
+      "gender": "M",
+      "position": "SEO Specialist"
+    },
+    {
+      "name": "Evelyn Henderson",
+      "age": 24,
+      "gender": "F",
+      "position": "Intern"
+    },
+    {
+      "name": "Earl Moore",
+      "age": 21,
+      "gender": "M",
+      "position": "Junior SEO Specialist"
+    },
+    {
+      "name": "Phillip Sanchez",
+      "age": 35,
+      "gender": "M",
+      "position": "SEM Specialist"
+    }
+  ]
+}
+
+GET /department/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "employees.position": "intern"
+          }
+        },
+        {
+          "term": {
+            "employees.gender.keyword": {
+              "value": "F"
+            }
+          }
+        }
+      ]
+    }
+  }
+}
+
+GET /department/_search
+{
+  "query": {
+    "nested": {
+      "path": "employees",
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "match": {
+                "employees.position": "intern"
+              }
+            },
+            {
+              "term": {
+                "employees.gender.keyword": {
+                  "value": "F"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+GET /department/_search
+{
+  "_source": false,
+  "query": {
+    "nested": {
+      "path": "employees",
+      "inner_hits": {},
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "match": {
+                "employees.position": "intern"
+              }
+            },
+            {
+              "term": {
+                "employees.gender.keyword": {
+                  "value": "F"
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+DELETE /department
+
+PUT /department
+{
+  "mappings": {
+    "properties": {
+      "join_field": { 
+        "type": "join",
+        "relations": {
+          "department": "employee"
+        }
+      }
+    }
+  }
+}
+
+PUT /department/_doc/1
+{
+  "name": "Development",
+  "join_field": "department"
+}
+
+PUT /department/_doc/2
+{
+  "name": "Marketing",
+  "join_field": "department"
+}
+
+PUT /department/_doc/3?routing=1
+{
+  "name": "Bo Andersen",
+  "age": 28,
+  "gender": "M",
+  "join_field": {
+    "name": "employee",
+    "parent": 1
+  }
+}
+
+PUT /department/_doc/4?routing=2
+{
+  "name": "John Doe",
+  "age": 44,
+  "gender": "M",
+  "join_field": {
+    "name": "employee",
+    "parent": 2
+  }
+}
+PUT /department/_doc/5?routing=1
+{
+  "name": "James Evans",
+  "age": 32,
+  "gender": "M",
+  "join_field": {
+    "name": "employee",
+    "parent": 1
+  }
+}
+PUT /department/_doc/6?routing=1
+{
+  "name": "Daniel Harris",
+  "age": 52,
+  "gender": "M",
+  "join_field": {
+    "name": "employee",
+    "parent": 1
+  }
+}
+PUT /department/_doc/7?routing=2
+{
+  "name": "Jane Park",
+  "age": 23,
+  "gender": "F",
+  "join_field": {
+    "name": "employee",
+    "parent": 2
+  }
+}
+PUT /department/_doc/8?routing=1
+{
+  "name": "Christina Parker",
+  "age": 29,
+  "gender": "F",
+  "join_field": {
+    "name": "employee",
+    "parent": 1
+  }
+}
+
+GET /department/_search
+{
+  "query": {
+    "parent_id": {
+      "type": "employee",
+      "id": 1
+    }
+  }
+}
+
+GET /department/_search
+{
+  "query": {
+    "has_parent": {
+      "parent_type": "department",
+      "score": true,
+      "query": {
+        "term": {
+          "name": "development"
+        }
+      }
+    }
+  }
+}
+
+GET /department/_search
+{
+  "query": {
+    "has_child": {
+      "type": "employee",
+      "score_mode": "sum",
+      "min_children": 2,
+      "max_children": 5, 
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "range": {
+                "age": {
+                  "gte": 50
+                }
+              }
+            }
+          ],
+          "should": [
+            {
+              "term": {
+                "gender.keyword": "M"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+PUT /company
+{
+  "mappings": {
+    "properties": {
+      "join_field": {
+        "type": "join",
+        "relations": {
+          "company": ["department", "supplier"],
+          "department": "employee"
+        }
+      }
+    }
+  }
+}
+
+PUT /company/_doc/1
+{
+  "name": "My Company Inc.",
+  "join_field": "company"
+}
+
+PUT /company/_doc/2?routing=1
+{
+  "name": "Development",
+  "join_field": {
+    "name": "department",
+    "parent": 1
+  }
+}
+
+PUT /company/_doc/3?routing=1
+{
+  "name": "Bo Andersen",
+  "join_field": {
+    "name": "employee",
+    "parent": 2
+  }
+}
+
+PUT /company/_doc/4
+{
+  "name": "Another Company, Inc.",
+  "join_field": "company"
+}
+PUT /company/_doc/5?routing=4
+{
+  "name": "Marketing",
+  "join_field": {
+    "name": "department",
+    "parent": 4
+  }
+}
+PUT /company/_doc/6?routing=4
+{
+  "name": "John Doe",
+  "join_field": {
+    "name": "employee",
+    "parent": 5
+  }
+}
+
+GET /company/_search
+{
+  "query": {
+    "has_child": {
+      "type": "department",
+      "query": {
+        "has_child": {
+          "type": "employee",
+          "query": {
+            "term": {
+              "name.keyword": "John Doe"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+GET /department/_search
+{
+  "query": {
+    "has_child": {
+      "type": "employee",
+      "inner_hits": {},
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "range": {
+                "age": {
+                  "gte": 50
+                }
+              }
+            }
+          ],
+          "should": [
+            {
+              "term": {
+                "gender.keyword": "M"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
+
+GET /department/_search
+{
+  "query": {
+    "has_parent": {
+      "inner_hits": {},
+      "parent_type": "department",
+      "query": {
+        "term": {
+          "name.keyword": "Development"
+        }
+      }
+    }
+  }
+}
+
+
+PUT /movies
+DELETE /movies
+
+PUT /movies
+{
+  "mappings": {
+    "properties": {
+      "year": {
+        "type": "date",
+        "format": "year"
+      },
+      "actors": {
+        "type": "nested"
+      }
+    }
+  }
+}
+
+PUT /movies/_doc/1
+{
+  "title": "Black Panther",
+  "year": "2018",
+  "genres": ["Action","Adventure","Sci-Fi"],
+  "storyline": "After the events of Captain America: Civil War, King T'Challa returns home to the reclusive, technologically advanced African nation of Wakanda to serve as his country's new leader. However, T'Challa soon finds that he is challenged for the throne from factions within his own country. When two foes conspire to destroy Wakanda, the hero known as Black Panther must team up with C.I.A. agent Everett K. Ross and members of the Dora Milaje, Wakandan special forces, to prevent Wakanda from being dragged into a world war.",
+  "actors": [
+    {"first_name": "Chadwick", "last_name":"Boseman"}, 
+    {"first_name": "Michael", "last_name":"Jordan"}, 
+    {"first_name": "Lupita", "last_name":"Nyogo"}]
+}
+
+
+
+GET /movies/_mapping
+
+GET /movies/_search
+{
+  "_source": "title",
+  "query": {
+    "match": {
+      "storyline": {
+        "query": "bitter couple",
+        "operator": "and"
+      }
+    }
+  }
+}
+
+GET /movies/_search
+{
+  "_source": "title",
+  "query": {
+    "match": {
+      "year": "2018"
+    }
+  }
+}
+
+GET /movies/_search
+{
+  "_source": "title",
+  "query": {
+    "nested": {
+      "path": "actors",
+      "query": {
+        "bool": {
+          "must": [
+            {
+              "match": {
+                "actors.first_name": "Kristin"
+              }
+            },
+            {
+              "match": {
+                "actors.last_name": "Thomas"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}
